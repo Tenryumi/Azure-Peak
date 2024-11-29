@@ -571,6 +571,14 @@
 	tilled_time = max(tilled_time - dt, 0)
 	blessed_time = max(blessed_time - dt, 0)
 
+	var/turf/ceiling = get_step_multiz(src, UP)
+	var/turf/T = get_turf(src)
+	var/datum/weather/W = SSweather.get_weather(T.z, get_area(T))
+	// If the soil is exposed to the open sky and it's raining over its current turf...
+	if(!ceiling && T.can_see_sky() && isarea(get_area(T)) && W.name == "rain")
+		// Then automatically water it!
+		adjust_water(5)
+
 /obj/structure/soil/proc/decay_soil()
 	uproot()
 	qdel(src)
