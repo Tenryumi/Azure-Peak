@@ -1,4 +1,5 @@
 #define MAX_HAND_SIZE 10
+#define TAROT_DECK_DESCRIPTION "The Mouthpiece of Xylix, given to mortals long ago. See fate. Never bend a corner."
 
 /datum/playingcard
 	var/name = "playing card"
@@ -63,6 +64,8 @@
 	var/deck_size = 1
 	/// How many cards are dealt at a time when our holder deals a hand
 	var/hand_size = 5
+	/// Icon state used for the backs of the cards this deck provides.
+	var/back_icon_state = "singlecard_down"
 	grid_width = 32
 	grid_height = 32
 	possible_item_intents = list(/datum/intent/hand/deal/facedown, /datum/intent/hand/deal/faceup)
@@ -71,12 +74,16 @@
 /obj/item/deck/proc/can_user_cheat(mob/living/carbon/human/user)
 	return TRUE
 
-/obj/item/deck/proc/populate_deck()
+/obj/item/deck/proc/get_new_deck()
 	PROTECTED_PROC(TRUE)
+	return list()
 
 /obj/item/deck/Initialize(mapload)
 	. = ..()
-	populate_deck()
+	for(var/i = 0, i < deck_size, i++)
+		var/list/new_deck = get_new_deck()
+		cards.Insert(1, new_deck)
+	cards = shuffle(cards)
 
 /obj/item/deck/examine()
 	. = ..()
@@ -97,29 +104,78 @@
 	name = "deck of playing cards"
 	desc = "A deck of simple playing cards inked in the name of one of Xylix's most favored activities."
 
-/obj/item/deck/cards/populate_deck()
-	PROTECTED_PROC(TRUE)
-	for(var/i = 0, i < deck_size, i++)
-		for(var/suit in list("spades","clubs","diamonds","hearts"))
-			for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten","jack","queen","king"))
+/obj/item/deck/cards/get_new_deck()
+	. = ..()
+	for(var/suit in list("spades","clubs","diamonds","hearts"))
+		for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten","jack","queen","king"))
+			var/datum/playingcard/pcard = new()
+			pcard.name = "[capitalize(number)] of [capitalize(suit)]"
+			pcard.front_icon_state = "[number]-[suit]"
+			pcard.back_icon_state = back_icon_state
+			pcard.icon = icon
+			. += pcard // Make it so.
+
+/obj/item/deck/tarot
+	name = "tarot deck (major arcana)"
+	desc = TAROT_DECK_DESCRIPTION + " This deck uses only the major arcana."
+	icon = 'icons/roguetown/items/cards/tarot.dmi'
+	var/has_minor_arcana = FALSE
+
+/obj/item/deck/tarot/includes_minor_arcana
+	name = "tarot deck (major and minor arcana)"
+	has_minor_arcana = TRUE
+	desc = TAROT_DECK_DESCRIPTION + " This deck uses both the major and minor arcana."
+
+/obj/item/deck/tarot/get_new_deck()
+	. = ..()
+	var/list/major_arcana = alist(
+		"The Magician" = "magician",
+		"The High Priestess" = "high-priestess",
+		"The Empress" = "empress",
+		"The Emperor" = "emperor",
+		"The Hierophant" = "hierophant",
+		"The Lovers" = "lovers",
+		"The Chariot" = "chariot",
+		"The Hermit" = "hermit",
+		"The Wheel of Fortune" = "wheel-of-fortune",
+		"The Hanged Man" = "hanged-man",
+		"The Devil" = "devil",
+		"The Tower" = "tower",
+		"The Star" = "star",
+		"The Moon" = "moon",
+		"The Sun" = "sun",
+		"The World" = "world",
+		"The Fool" = "fool",
+		"Justice" = "justice",
+		"Strength" = "strength",
+		"Death" = "death",
+		"Temperance" = "temperance",
+		"Judgement" = "judgement",
+	)
+	for(var/key, value in major_arcana)
+		var/datum/playingcard/pcard = new()
+		pcard.name = key
+		pcard.front_icon_state = value
+		pcard.back_icon_state = back_icon_state
+		pcard.icon = icon
+		. += pcard // Make it so.
+	// If we want the minor arcana too, include that!
+	if(has_minor_arcana)
+		for(var/suit in list("swords","wands","cups","pentacles"))
+			for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten","page","knight","queen","king"))
 				var/datum/playingcard/pcard = new()
 				pcard.name = "[capitalize(number)] of [capitalize(suit)]"
 				pcard.front_icon_state = "[number]-[suit]"
+				pcard.back_icon_state = back_icon_state
 				pcard.icon = icon
-				cards.Add(pcard) // Make it so.
+				. += pcard // Make it so.
 
-/obj/item/deck/tarot
-	name = "tarot deck"
-	desc = "The Mouthpiece of Xylix, given to mortals long ago. See fate. Never bend a corner."
-	icon = 'icons/roguetown/items/cards/tarot.dmi'
-
-/obj/item/deck/tarot/populate_deck()
-	. = ..()
 
 /obj/item/deck/tarot/majorarcana
 	name = "tarot deck (major arcana)"
 
-/obj/item/deck/tarot/majorarcana/populate_deck()
+/obj/item/deck/tarot/majorarcana/get_new_deck()
 	. = ..()
 
 #undef MAX_HAND_SIZE
+#undef TAROT_DECK_DESCRIPTION
