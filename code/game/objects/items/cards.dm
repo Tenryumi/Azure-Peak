@@ -8,24 +8,19 @@
 	var/reversed = FALSE
 	var/icon = 'icons/roguetown/items/cards/playingcards.dmi'
 
-/datum/playingcard/New(card_name, icon, front_icon_state)
-	name = card_name
-	src.icon = icon
-	src.front_icon_state = front_icon_state
-
 // Card intents
 
 /datum/intent/hand/deal
 	name = "deal"
-	icon_state = "deal"
+	icon_state = "indeal"
 
 /datum/intent/hand/deal/faceup
 	name = "deal (face-up)"
-	icon_state = "deal-faceup"
+	icon_state = "indeal-faceup"
 
 /datum/intent/hand/deal/facedown
 	name = "deal (face-down)"
-	icon_state = "deal-faceup"
+	icon_state = "indeal-facedown"
 
 // Hand of cards. Holds one or more cards
 
@@ -33,6 +28,7 @@
 	name = "hand of cards"
 	icon = 'icons/roguetown/items/cards/playingcards.dmi'
 	icon_state = "hand1"
+	dropshrink = 0.5
 	var/list/cards = list()
 	/// The original deck we come from. Our cards can ONLY be taken from / put into this deck, and no other.
 	var/obj/item/deck/our_deck = null
@@ -42,21 +38,19 @@
 	. = ..()
 	concealed = !concealed
 	update_icon()
-	flipper.visible_message(span_notice("\The [flipper] [concealed ? "conceals" : "reveals"] [flipper.p_their()] hand."), span_notice("I [concealed ? "conceal" : "reveal"] my hand."), span_notice("I hear the flipping of card stock."))
+	user.visible_message(span_notice("\The [user] [concealed ? "conceals" : "reveals"] [user.p_their()] hand."), span_notice("I [concealed ? "conceal" : "reveal"] my hand."), span_notice("I hear the flipping of card stock."))
 
 /obj/item/card_hand/examine(mob/user)
 	. = ..()
 	if((!concealed) && cards.len)
 		. += "<details><summary>[span_notice("Cards in Hand")]</summary>"
-		var/total_value = 0
-		var/alt_total = 0
 		for(var/datum/playingcard/C in cards)
 			. += span_smallnotice("[icon2html(C.icon, user, C.front_icon_state)] [C.name]")
 		. += "</details>"
 
 // Card decks
 
-/// Generic card deck. Do not spawn this ingame - use one of the subtyes!!
+// Generic card deck. Do not directly spawn this ingame - use one of the subtyes!!
 /obj/item/deck
 	name = "deck of impossible and broken cards"
 	desc = "You should not be seeing this. If you see this, report it to a developer!!"
@@ -86,7 +80,7 @@
 
 /obj/item/deck/examine()
 	. = ..()
-	. += span_notice("It has [length(cards)] cards left.")
+	. += span_notice("It has [cards.len] cards left.")
 
 /obj/item/deck/get_mechanics_examine(mob/user)
 	. = ..()
@@ -105,6 +99,14 @@
 
 /obj/item/deck/cards/populate_deck()
 	PROTECTED_PROC(TRUE)
+	for(var/i = 0, i < deck_size, i++)
+		for(var/suit in list("spades","clubs","diamonds","hearts"))
+			for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten","jack","queen","king"))
+				var/datum/playingcard/pcard = new()
+				pcard.name = "[capitalize(number)] of [capitalize(suit)]"
+				pcard.front_icon_state = "[number]-[suit]"
+				pcard.icon = icon
+				cards.Add(pcard) // Make it so.
 
 /obj/item/deck/tarot
 	name = "tarot deck"
@@ -112,12 +114,12 @@
 	icon = 'icons/roguetown/items/cards/tarot.dmi'
 
 /obj/item/deck/tarot/populate_deck()
-	PROTECTED_PROC(TRUE)
+	. = ..()
 
 /obj/item/deck/tarot/majorarcana
 	name = "tarot deck (major arcana)"
 
 /obj/item/deck/tarot/majorarcana/populate_deck()
-	PROTECTED_PROC(TRUE)
+	. = ..()
 
 #undef MAX_HAND_SIZE
