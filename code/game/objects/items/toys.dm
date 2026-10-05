@@ -106,6 +106,8 @@
 	if(!istype(sourceobj))
 		return
 
+/* Temporarily hiding all this
+
 /obj/item/toy/cards/deck
 	name = "deck of cards"
 	desc = "A deck of simple printing cards, belted out in immense quantities from a \
@@ -462,3 +464,4 @@
 	icon_state = "deck_[deckstyle]_full"
 	for(var/trump in list("The Fool", "The Magician", "The High Priestess", "The Empress", "The Emperor", "The Hierophant", "The Lover", "The Chariot", "Justice", "The Hermit", "The Wheel of Fortune", "Strength", "The Hanged Man", "Death", "Temperance", "The Devil", "The Tower", "The Star", "The Moon", "The Sun", "Judgement", "The World"))
 		cards += trump
+*/

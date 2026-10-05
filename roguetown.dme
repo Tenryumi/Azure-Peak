@@ -1276,6 +1276,7 @@
 #include "code\game\objects\items\beartraps.dm"
 #include "code\game\objects\items\bedsheets.dm"
 #include "code\game\objects\items\candle.dm"
+#include "code\game\objects\items\cards.dm"
 #include "code\game\objects\items\cigs_lighters.dm"
 #include "code\game\objects\items\contraption.dm"
 #include "code\game\objects\items\cosmetics.dm"
