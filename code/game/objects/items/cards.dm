@@ -28,7 +28,7 @@
 /obj/item/card_hand
 	name = "hand of cards"
 	icon = 'icons/roguetown/items/cards/playingcards.dmi'
-	icon_state = "hand1"
+	icon_state = null
 	dropshrink = 0.5
 	var/list/cards = list()
 	/// The original deck we come from. Our cards can ONLY be taken from / put into this deck, and no other.
@@ -58,17 +58,16 @@
 		return
 	else if(cardCount > 1)
 		name = "hand of cards ([cardCount])"
-		desc = "The inked illustrations, still as ice, await their moment of glory."
+		desc = "The inked illustrations, still as ice, await their wielder's moment of glory and fortune."
 	else
 		name = "playing card"
 		desc = "One would be forgiven for the bizarre impulse to flick the card stock in one's hand." // Stimming...
 
 	if(cardCount == 1)
 		var/datum/playingcard/P = cards[1]
-		var/image/I = new(src.icon, (concealed ? P.back_icon_state : P.front_icon_state))
-		I.pixel_x += (-5+rand(10))
-		I.pixel_y += (-5+rand(10))
+		var/image/I = image(icon = src.icon, icon_state = concealed ? P.back_icon_state : P.front_icon_state)
 		add_overlay(I)
+		return
 
 	var/offset = FLOOR(20/cardCount, 1)
 
@@ -79,11 +78,32 @@
 		add_overlay(I)
 		i++
 
+/obj/item/card_hand/pickup(mob/user)
+	. = ..()
+	update_icon()
+
+/obj/item/card_hand/AltClick(mob/user)
+	. = ..()
+
+
+/obj/item/card_hand/proc/remove_card(mob/living/carbon/user)
+	if(!user || user.stat)
+		return
+
+/obj/item/card_hand/Initialize(mapload, obj/item/deck/source_deck, list/_cards)
+	. = ..()
+	if(!source_deck || !_cards?.len)
+		qdel(src)
+		return
+	src.our_deck = source_deck
+	src.cards.Insert(1, _cards)
+	update_icon()
+
 // Card decks
 
-// Generic card deck. Do not directly spawn this ingame - use one of the subtyes!!
+// Abstract card deck. Do not directly spawn this ingame - use one of the subtyes!!
 /obj/item/deck
-	name = "deck of impossible and broken cards"
+	name = "THE DECK OF IMPOSSIBLE AND BROKEN CARDS"
 	desc = "You should not be seeing this. If you see this, report it to a developer!!"
 	icon = 'icons/roguetown/items/cards/playingcards.dmi'
 	icon_state = "deck_full"
@@ -107,6 +127,50 @@
 /obj/item/deck/proc/get_new_deck()
 	PROTECTED_PROC(TRUE)
 	return list()
+
+/obj/item/deck/proc/shuffle_deck(mob/user)
+	if(cooldown < world.time - 25)
+		cards = shuffle(cards)
+		playsound(src, 'sound/items/cardshuffle.ogg', 100, TRUE)
+		user.visible_message(span_notice("[user] shuffles the deck."), span_notice("I shuffle the deck."), span_notice("I hear the shuffling of cards."))
+		cooldown = world.time
+
+/obj/item/deck/attackby(obj/item/I, mob/user, params)
+	. = ..()
+
+
+/obj/item/deck/AltClick(mob/user)
+	if(!ishuman(user) || user.stat || !user.canUseTopic(src, BE_CLOSE))
+		return
+	. = ..()
+	if(.)
+		return
+	if(!cards.len)
+		to_chat(user, span_warning("It has no cards left to draw."))
+		return
+	shuffle_deck(user)
+	user.changeNext_move(CLICK_CD_MELEE)
+
+/obj/item/deck/attack_hand(mob/user)
+	if(!ishuman(user) || user.stat)
+		return
+	if(!cards.len)
+		to_chat(user, span_warning("It has no cards left to draw."))
+		return
+	var/mob/living/carbon/human/H = user
+	if(H.get_num_arms() <= 0)
+		to_chat(user, span_danger("WITH WHAT ARMS?"))
+		return
+	var/list/drawn_cards = list()
+	drawn_cards += cards[1]
+	var/obj/item/card_hand/C = new(loc.loc, src, drawn_cards)
+	if(!user.put_in_hands(C, del_on_fail = TRUE))
+		to_chat(user, span_warning("My hands are full!"))
+		return
+	drawn_cards -= cards[1]
+	user.visible_message(span_notice("\The [user] draws a card."), span_notice("I draw a card."))
+	if(isturf(loc))
+		balloon_alert_to_viewers("1 card drawn...")
 
 /obj/item/deck/Initialize(mapload)
 	. = ..()
@@ -132,7 +196,7 @@
 
 /obj/item/deck/cards
 	name = "deck of playing cards"
-	desc = "A deck of simple playing cards inked in the name of one of Xylix's most favored activities."
+	desc = "To the Xylixians; sacred. To the rest of the church of the Ten; a source of moral decay."
 
 /obj/item/deck/cards/get_new_deck()
 	. = ..()

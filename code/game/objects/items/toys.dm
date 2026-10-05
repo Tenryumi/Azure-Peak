@@ -83,6 +83,8 @@
 	new /obj/item/toy/snappop/phoenix(get_turf(src))
 	qdel(src)
 
+/* Temporarily hiding all this
+
 /obj/item/toy/cards
 	desc = "A source of moral decay, says the church."
 	resistance_flags = FLAMMABLE
@@ -106,7 +108,6 @@
 	if(!istype(sourceobj))
 		return
 
-/* Temporarily hiding all this
 
 /obj/item/toy/cards/deck
 	name = "deck of cards"
