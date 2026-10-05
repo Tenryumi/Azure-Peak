@@ -49,6 +49,36 @@
 			. += span_smallnotice("[icon2html(C.icon, user, C.front_icon_state)] [C.name]")
 		. += "</details>"
 
+/obj/item/card_hand/update_icon()
+	cut_overlays()
+
+	var/cardCount = cards.len
+	if(!cardCount)
+		qdel(src)
+		return
+	else if(cardCount > 1)
+		name = "hand of cards ([cardCount])"
+		desc = "The inked illustrations, still as ice, await their moment of glory."
+	else
+		name = "playing card"
+		desc = "One would be forgiven for the bizarre impulse to flick the card stock in one's hand." // Stimming...
+
+	if(cardCount == 1)
+		var/datum/playingcard/P = cards[1]
+		var/image/I = new(src.icon, (concealed ? P.back_icon_state : P.front_icon_state))
+		I.pixel_x += (-5+rand(10))
+		I.pixel_y += (-5+rand(10))
+		add_overlay(I)
+
+	var/offset = FLOOR(20/cardCount, 1)
+
+	var/i = 0
+	for(var/datum/playingcard/P in cards)
+		var/image/I = new(src.icon, (concealed ? P.back_icon_state : P.front_icon_state))
+		I.pixel_x = -7+(offset*i)
+		add_overlay(I)
+		i++
+
 // Card decks
 
 // Generic card deck. Do not directly spawn this ingame - use one of the subtyes!!
@@ -158,7 +188,7 @@
 		pcard.front_icon_state = value
 		pcard.back_icon_state = back_icon_state
 		pcard.icon = icon
-		. += pcard // Make it so.
+		. += pcard
 	// If we want the minor arcana too, include that!
 	if(has_minor_arcana)
 		for(var/suit in list("swords","wands","cups","pentacles"))
@@ -168,7 +198,7 @@
 				pcard.front_icon_state = "[number]-[suit]"
 				pcard.back_icon_state = back_icon_state
 				pcard.icon = icon
-				. += pcard // Make it so.
+				. += pcard
 
 
 /obj/item/deck/tarot/majorarcana
