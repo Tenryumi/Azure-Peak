@@ -428,7 +428,7 @@
 || Syndicate playing cards, for pretending you're Gambit and playing poker for the nuke disk. ||
 */
 
-/obj/item/toy/cards/deck/syndicate
+/obj/item/deck/cards
 	name = "cards"
 	desc = "a pack of cards."
 	icon_state = "deck_syndicate_full"

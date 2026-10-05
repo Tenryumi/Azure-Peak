@@ -247,7 +247,7 @@
 
 /datum/crafting_recipe/roguetown/survival/tarot_deck
 	name = "tarot deck"
-	result = list(/obj/item/toy/cards/deck/tarot)
+	result = list(/obj/item/deck/tarot)
 	reqs = list(
 		/obj/item/paper/scroll = 3,
 		/obj/item/grown/log/tree/small = 1,
@@ -260,7 +260,7 @@
 
 /datum/crafting_recipe/roguetown/survival/tarot_deck_majorarcana
 	name = "tarot deck (major arcana)"
-	result = list(/obj/item/toy/cards/deck/tarot/majorarcana)
+	result = list(/obj/item/deck/tarot/majorarcana)
 	reqs = list(
 		/obj/item/paper/scroll = 3,
 		/obj/item/grown/log/tree/small = 1,

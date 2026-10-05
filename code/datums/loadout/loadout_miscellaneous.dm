@@ -2,7 +2,7 @@
 
 /datum/loadout_item/card_deck
 	name = "Card Deck"
-	path = /obj/item/toy/cards/deck
+	path = /obj/item/deck/cards
 	sort_category = "Misc"
 
 /datum/loadout_item/farkle_dice
@@ -12,12 +12,12 @@
 
 /datum/loadout_item/tarot_deck
 	name = "Tarot Deck"
-	path = /obj/item/toy/cards/deck/tarot
+	path = /obj/item/deck/tarot
 	sort_category = "Misc"
 
 /datum/loadout_item/tarot_deck_majorarcana
 	name = "Tarot Deck (Major Arcana)"
-	path = /obj/item/toy/cards/deck/tarot/majorarcana
+	path = /obj/item/deck/tarot/majorarcana
 	sort_category = "Misc"
 
 /datum/loadout_item/custom_book
