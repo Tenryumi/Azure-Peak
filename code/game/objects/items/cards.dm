@@ -8,6 +8,14 @@
 	/// If this is TRUE, the card will be rendered upside-down.
 	var/reversed = FALSE
 	var/icon = 'icons/roguetown/items/cards/playingcards.dmi'
+	var/obj/item/deck/our_deck
+
+/datum/playingcard/proc/get_card_image(image_loc, is_concealed)
+	RETURN_TYPE(/image)
+	return image(src.icon, image_loc, is_concealed ? back_icon_state : front_icon_state)
+
+/datum/playingcard/proc/get_card_name()
+	return name
 
 // Card intents
 
@@ -58,9 +66,10 @@
 /obj/item/card_hand/examine(mob/user)
 	. = ..()
 	if((!concealed) && cards.len)
-		. += "<details><summary>[span_notice("Cards in Hand")]</summary>"
+		. += "<details><summary>[span_notice("Cards in Hand:")]</summary>"
 		for(var/datum/playingcard/C in cards)
-			. += span_smallnotice("[icon2html(C.icon, user, C.front_icon_state)] [C.name]")
+			var/image/I = C.get_card_image(user, FALSE)
+			. += span_notice("[icon2html(I, user)] [C.get_card_name()]")
 		. += "</details>"
 
 /obj/item/card_hand/update_icon()
@@ -79,7 +88,7 @@
 
 	if(cardCount == 1)
 		var/datum/playingcard/P = cards[1]
-		var/image/I = image(icon = src.icon, icon_state = concealed ? P.back_icon_state : P.front_icon_state)
+		var/image/I = P.get_card_image(src, concealed)
 		add_overlay(I)
 		return
 
@@ -87,7 +96,7 @@
 
 	var/i = 0
 	for(var/datum/playingcard/P in cards)
-		var/image/I = new(src.icon, (concealed ? P.back_icon_state : P.front_icon_state))
+		var/image/I = P.get_card_image(src, concealed)
 		I.pixel_x = -7+(offset*i)
 		add_overlay(I)
 		i++
