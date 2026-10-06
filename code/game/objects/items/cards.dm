@@ -53,6 +53,7 @@
 			var/TDN = copytext(to_draw, 1, length(to_draw) - 3)
 			var/datum/playingcard/P = card_list[i]
 			if(TDN == P.name)
+				card_list.Cut(i, i+1)
 				. += P
 				break
 
@@ -102,7 +103,7 @@
 	var/concealed = TRUE
 
 /obj/item/card_hand/proc/get_drawn_cards(mob/living/carbon/human/H, max_amt_to_draw = null)
-	var/list/cards_to_draw = get_cards_in_selection(cards, H, max_amt_to_draw || min(cards.len, MAX_HAND_SIZE))
+	var/list/cards_to_draw = get_cards_in_selection(cards.Copy(), H, max_amt_to_draw || min(cards.len, MAX_HAND_SIZE))
 	if(cards_to_draw?.len && Adjacent(H))
 		var/list/removed = list()
 		for(var/datum/playingcard/card_draw in cards_to_draw)
@@ -205,15 +206,16 @@
 				if(isturf(loc))
 					balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 				update_icon()
+		return TRUE
 	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
 		if(CH.our_deck != our_deck)
 			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
-			return
+			return TRUE
 		if(CH.cards.len >= MAX_HAND_SIZE)
 			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
-			return
+			return TRUE
 		var/list/drawn_cards = get_drawn_cards(H, min(CH.cards.len, cards.len))
 		if(drawn_cards?.len)
 			CH.cards.Add(drawn_cards)
@@ -222,6 +224,7 @@
 				if(isturf(loc))
 					balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 				update_icon()
+		return TRUE
 
 /obj/item/card_hand/proc/try_delete_self_if_no_cards()
 	if(!cards.len)
@@ -320,12 +323,14 @@
 	var/hand_size = 5
 	/// Icon state used for the backs of the cards this deck provides.
 	var/back_icon_state = "singlecard_down"
+	/// The number of cards we'll deal when dealing hands at a time.
+	var/number_cards_to_deal = 1
 	grid_width = 32
 	grid_height = 32
 	possible_item_intents = list(/datum/intent/hand/deal/facedown, /datum/intent/hand/deal/faceup)
 
 /obj/item/deck/proc/get_drawn_cards(mob/living/carbon/human/H, max_amt_to_draw = null)
-	var/list/cards_to_draw = get_cards_in_selection(cards, H, max_amt_to_draw || min(cards.len, MAX_HAND_SIZE))
+	var/list/cards_to_draw = get_cards_in_selection(cards.Copy(), H, max_amt_to_draw || min(cards.len, MAX_HAND_SIZE))
 	if(cards_to_draw?.len && Adjacent(H))
 		var/list/removed = list()
 		for(var/datum/playingcard/card_draw in cards_to_draw)
@@ -354,6 +359,12 @@
 		playsound(src, 'sound/items/cardshuffle.ogg', 100, TRUE)
 		user.visible_message(span_notice("[user] shuffles the deck."), span_notice("I shuffle the deck."), span_notice("I hear the shuffling of cards."))
 		cooldown = world.time
+
+/obj/item/deck/attack_self(mob/user)
+	. = ..()
+	var/choice = tgui_input_number(user, "How many cards do I want to deal at a time when dealing hands?", "DEALER PREPERATION", 5, MAX_HAND_SIZE, 1)
+	if(choice)
+		number_cards_to_deal = choice
 
 /obj/item/deck/attackby(obj/item/I, mob/user, params)
 	. = ..()
@@ -384,21 +395,23 @@
 				balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 			var/obj/item/card_hand/CH = new(user.loc, src, drawn_cards, TRUE)
 			H.put_in_active_hand(CH)
+		return TRUE
 	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
 		if(CH.our_deck != src)
 			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
-			return
+			return TRUE
 		if(CH.cards.len >= MAX_HAND_SIZE)
 			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
-			return
+			return TRUE
 		var/list/drawn_cards = get_drawn_cards(H, min(min(CH.cards.len, cards.len), MAX_HAND_SIZE))
 		if(drawn_cards?.len)
 			if(isturf(loc))
 				balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 			CH.cards.Add(drawn_cards)
 			CH.update_icon()
+		return TRUE
 
 /obj/item/deck/attack_right(mob/user)
 	. = ..()
@@ -434,7 +447,8 @@
 		if(isturf(loc))
 			balloon_alert_to_viewers("1 card drawn...")
 
-/obj/item/deck/attack_hand(mob/user)
+/obj/item/deck/MiddleClick(mob/user, params)
+	. = ..()
 	if(!ishuman(user) || user.stat || !user.canUseTopic(src, BE_CLOSE))
 		return
 	shuffle_deck(user)
