@@ -72,7 +72,13 @@
 			. += span_notice("[icon2html(I, user)] [C.get_card_name()]")
 		. += "</details>"
 
-/obj/item/card_hand/update_icon()
+/obj/item/card_hand
+
+/obj/item/card_hand/dropped(mob/user, silent)
+	. = ..()
+	update_icon(user.dir)
+
+/obj/item/card_hand/update_icon(direction = 0)
 	cut_overlays()
 
 	var/cardCount = cards.len
@@ -86,18 +92,45 @@
 		name = "playing card"
 		desc = "One would be forgiven for the bizarre impulse to flick the card stock in one's hand." // Stimming...
 
+	// If we just have a single card, no need for handling the tansform
 	if(cardCount == 1)
 		var/datum/playingcard/P = cards[1]
 		var/image/I = P.get_card_image(src, concealed)
 		add_overlay(I)
 		return
 
+	// If there are multiple cards, determine the min / max distance cards can be from one another
 	var/offset = FLOOR(20/cardCount, 1)
+
+	var/matrix/M = matrix()
+	if(direction)
+		// Make the cards visually face direction the player (if any) was facing when we were placed
+		switch(direction)
+			if(NORTH)
+				M.Translate( 0,  0)
+			if(SOUTH)
+				M.Translate( 0,  4)
+			if(WEST)
+				M.Turn(90)
+				M.Translate( 3,  0)
+			if(EAST)
+				M.Turn(90)
+				M.Translate(-2,  0)
 
 	var/i = 0
 	for(var/datum/playingcard/P in cards)
 		var/image/I = P.get_card_image(src, concealed)
-		I.pixel_x = -7+(offset*i)
+		// Pixel offsets to keep us visually where a player would expect us to go when placing us on a table
+		switch(direction)
+			if(SOUTH)
+				I.pixel_x = 8-(offset*i)
+			if(WEST)
+				I.pixel_y = -6+(offset*i)
+			if(EAST)
+				I.pixel_y = 8-(offset*i)
+			else
+				I.pixel_x = -7+(offset*i)
+		I.transform = M
 		add_overlay(I)
 		i++
 
