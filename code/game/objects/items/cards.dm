@@ -1,5 +1,8 @@
 #define MAX_HAND_SIZE 10
 #define TAROT_DECK_DESCRIPTION "The Mouthpiece of Xylix, given to mortals long ago. See fate. Never bend a corner."
+#define SHOW_ERROR_HAND_FULL(user) (to_chat(user, span_warning("It can't hold any more cards.")))
+#define SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user) (to_chat(user, span_warning("These cards come from a different deck. I can't mix them.")))
+#define SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user) (to_chat(user, span_danger("WITH WHAT ARMS?")))
 
 /** Helper proc for card game stuff that prompts the user to choose from a list of cards which selection of cards they wish to draw.
 * Returns which cards they wish to draw as `list`.
@@ -20,6 +23,7 @@
 
 	// Emote before doing anything so you can't cheat!
 	user.visible_message(span_notice("\The [user] looks into \the [src] and searches within it..."))
+	balloon_alert_to_viewers("searching...")
 
 	// We store the card names as a dictionary with the card name as the key and the number of duplicates of that card.
 	// Why, you may ask?
@@ -57,6 +61,8 @@
 				. += P
 				break
 
+	if(isturf(loc))
+		balloon_alert_to_viewers("[cards_to_draw.len] card[cards_to_draw.len > 1 ? "s" : ""] drawn...")
 	user.visible_message(span_notice("\The [user] searches for specific cards in \the [src], and draws [cards_to_draw.len]."))
 	return .
 
@@ -108,7 +114,7 @@
 	if(istype(I, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = I
 		if(MAX_HAND_SIZE < (CH.cards.len + cards.len))
-			to_chat(user, span_warning("\The [src] can only hold [MAX_HAND_SIZE] cards at most."))
+			SHOW_ERROR_HAND_FULL(user)
 			return
 		var/mob/living/carbon/human/H = user
 		cards.Add(CH.cards)
@@ -141,7 +147,7 @@
 		return
 	var/mob/living/carbon/human/H = user
 	if(H.get_num_arms() <= 0)
-		to_chat(user, span_danger("WITH WHAT ARMS?"))
+		SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user)
 		return
 
 	// If we're right clicking with an empty hand, make a new hand!
@@ -159,10 +165,10 @@
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
 		if(CH.our_deck != our_deck)
-			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
+			SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user)
 			return
 		if(CH.cards.len >= MAX_HAND_SIZE)
-			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
+			SHOW_ERROR_HAND_FULL(user)
 			return
 		var/datum/playingcard/PC = cards[1]
 		cards.Cut(1, 2)
@@ -178,7 +184,7 @@
 		return
 	var/mob/living/carbon/human/H = user
 	if(H.get_num_arms() <= 0)
-		to_chat(user, span_danger("WITH WHAT ARMS?"))
+		SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user)
 		return
 	var/thing_in_hand = H.get_active_held_item()
 	// If we're right clicking with an empty hand, make a new hand!
@@ -189,26 +195,19 @@
 			var/obj/item/card_hand/CH = new(user.loc, our_deck, drawn_cards, concealed)
 			H.put_in_active_hand(CH)
 			if(!try_delete_self_if_no_cards())
-				if(isturf(loc))
-					balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 				update_icon()
 		return TRUE
 	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
 		if(CH.our_deck != our_deck)
-			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
-			return TRUE
-		if(CH.cards.len >= MAX_HAND_SIZE)
-			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
+			SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user)
 			return TRUE
 		var/list/drawn_cards = get_drawn_cards(H, min(CH.cards.len, cards.len))
 		if(drawn_cards?.len)
 			CH.cards.Add(drawn_cards)
 			CH.update_icon()
 			if(!try_delete_self_if_no_cards())
-				if(isturf(loc))
-					balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 				update_icon()
 		return TRUE
 
@@ -361,6 +360,7 @@
 		cards.Add(CH.cards)
 		user.visible_message(span_notice("\The [user] returns \the [CH] to \the [src]."), span_notice("I return \the [CH] to \the [src]."))
 		qdel(CH)
+		user.changeNext_move(CLICK_CD_FAST)
 		return
 
 /obj/item/deck/ShiftRightClick(mob/user)
@@ -368,16 +368,14 @@
 		return
 	var/mob/living/carbon/human/H = user
 	if(H.get_num_arms() <= 0)
-		to_chat(user, span_danger("WITH WHAT ARMS?"))
-		return
+		SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user)
+		return TRUE
 	var/thing_in_hand = H.get_active_held_item()
 	// If we're right clicking with an empty hand, make a new hand!
 	if(!thing_in_hand && cards.len > 1)
 		// Let the user choose which cards to remove
 		var/list/drawn_cards = get_drawn_cards(H, min(cards.len, MAX_HAND_SIZE))
 		if(drawn_cards?.len)
-			if(isturf(loc))
-				balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 			var/obj/item/card_hand/CH = new(user.loc, src, drawn_cards, TRUE)
 			H.put_in_active_hand(CH)
 		return TRUE
@@ -385,15 +383,12 @@
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
 		if(CH.our_deck != src)
-			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
+			SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user)
 			return TRUE
-		if(CH.cards.len >= MAX_HAND_SIZE)
-			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
-			return TRUE
+		if(CH.cards >= MAX_HAND_SIZE)
+			to_chat(user, span_warning("The "))
 		var/list/drawn_cards = get_drawn_cards(H, min(min(CH.cards.len, cards.len), MAX_HAND_SIZE))
 		if(drawn_cards?.len)
-			if(isturf(loc))
-				balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 			CH.cards.Add(drawn_cards)
 			CH.update_icon()
 		return TRUE
@@ -404,7 +399,7 @@
 		return
 	var/mob/living/carbon/human/H = user
 	if(H.get_num_arms() <= 0)
-		to_chat(user, span_danger("WITH WHAT ARMS?"))
+		SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user)
 		return
 	// If we're right clicking with an empty hand, make a new hand!
 	var/thing_in_hand = H.get_active_held_item()
@@ -420,10 +415,10 @@
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
 		if(CH.our_deck != src)
-			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
+			SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user)
 			return
 		if(CH.cards.len >= MAX_HAND_SIZE)
-			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
+			SHOW_ERROR_HAND_FULL(user)
 			return
 		var/datum/playingcard/PC = cards[1]
 		cards.Cut(1, 2)
@@ -535,6 +530,7 @@
 				pcard.icon = icon
 				. += pcard
 
-
+#undef SHOW_ERROR_HAND_FULL
+#undef SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK
 #undef MAX_HAND_SIZE
 #undef TAROT_DECK_DESCRIPTION
