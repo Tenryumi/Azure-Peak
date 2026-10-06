@@ -168,9 +168,12 @@
 		if(isturf(loc))
 			balloon_alert_to_viewers("1 card drawn...")
 		update_icon()
-	// If we're right clicking with another hand of cards, do the same thing but we just transfer our rightmost card to that hand
+	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
+		if(CH.our_deck != our_deck)
+			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
+			return
 		if(CH.cards.len >= MAX_HAND_SIZE)
 			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
 			return
@@ -202,9 +205,12 @@
 				if(isturf(loc))
 					balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 				update_icon()
-	// If we're right clicking with another hand of cards, do the same thing but we just transfer our rightmost card to that hand
+	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
+		if(CH.our_deck != our_deck)
+			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
+			return
 		if(CH.cards.len >= MAX_HAND_SIZE)
 			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
 			return
@@ -361,12 +367,6 @@
 		qdel(CH)
 		return
 
-/obj/item/deck/AltClick(mob/user)
-	if(!ishuman(user) || user.stat || !user.canUseTopic(src, BE_CLOSE))
-		return
-	shuffle_deck(user)
-	user.changeNext_move(CLICK_CD_MELEE)
-
 /obj/item/deck/ShiftRightClick(mob/user)
 	if(!ishuman(user) || user.stat)
 		return
@@ -384,9 +384,12 @@
 				balloon_alert_to_viewers("[drawn_cards.len] card[drawn_cards.len > 1 ? "s" : ""] drawn...")
 			var/obj/item/card_hand/CH = new(user.loc, src, drawn_cards, TRUE)
 			H.put_in_active_hand(CH)
-	// If we're right clicking with another hand of cards, do the same thing but we just transfer our rightmost card to that hand
+	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
+		if(CH.our_deck != src)
+			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
+			return
 		if(CH.cards.len >= MAX_HAND_SIZE)
 			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
 			return
@@ -415,9 +418,12 @@
 		H.put_in_active_hand(CH)
 		if(isturf(loc))
 			balloon_alert_to_viewers("1 card drawn...")
-	// If we're right clicking with another hand of cards, do the same thing but we just transfer our rightmost card to that hand
+	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
+		if(CH.our_deck != src)
+			to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
+			return
 		if(CH.cards.len >= MAX_HAND_SIZE)
 			to_chat(user, span_warning("It can only hold [MAX_HAND_SIZE] cards at most."))
 			return
@@ -429,25 +435,10 @@
 			balloon_alert_to_viewers("1 card drawn...")
 
 /obj/item/deck/attack_hand(mob/user)
-	if(!ishuman(user) || user.stat)
+	if(!ishuman(user) || user.stat || !user.canUseTopic(src, BE_CLOSE))
 		return
-	if(!cards.len)
-		to_chat(user, span_warning("It has no cards left to draw."))
-		return
-	var/mob/living/carbon/human/H = user
-	if(H.get_num_arms() <= 0)
-		to_chat(user, span_danger("WITH WHAT ARMS?"))
-		return
-	var/list/datum/playingcard/drawn_cards = list()
-	drawn_cards += cards[1]
-	var/obj/item/card_hand/C = new(loc.loc, src, drawn_cards)
-	if(!user.put_in_hands(C, del_on_fail = TRUE))
-		to_chat(user, span_warning("My hands are full!"))
-		return
-	cards.Cut(1, 2)
-	user.visible_message(span_notice("\The [user] draws a card."), span_notice("I draw a card."))
-	if(isturf(loc))
-		balloon_alert_to_viewers("1 card drawn...")
+	shuffle_deck(user)
+	user.changeNext_move(CLICK_CD_MELEE)
 
 /obj/item/deck/Initialize(mapload)
 	. = ..()
