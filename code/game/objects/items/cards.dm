@@ -30,10 +30,24 @@
 	icon = 'icons/roguetown/items/cards/playingcards.dmi'
 	icon_state = null
 	dropshrink = 0.5
-	var/list/cards = list()
+	var/list/datum/playingcard/cards = list()
 	/// The original deck we come from. Our cards can ONLY be taken from / put into this deck, and no other.
 	var/obj/item/deck/our_deck = null
 	var/concealed = TRUE
+
+/obj/item/card_hand/attackby(obj/item/I, mob/user, params)
+	if(!user || !ishuman(user) || user.stat)
+		return
+	if(istype(I, /obj/item/card_hand))
+		var/obj/item/card_hand/CH = I
+		if(MAX_HAND_SIZE < (CH.cards.len + cards.len))
+			to_chat(user, span_warning("\The [src] can only hold [MAX_HAND_SIZE] cards at most."))
+			return
+		var/mob/living/carbon/human/H = user
+		cards.Add(CH.cards)
+		H.visible_message(span_notice("\The [H] joins \the [CH] with [H.p_their()] hand."))
+		qdel(CH)
+		update_icon()
 
 /obj/item/card_hand/attack_self(mob/user)
 	. = ..()
@@ -109,7 +123,7 @@
 	icon_state = "deck_full"
 	w_class = WEIGHT_CLASS_SMALL
 	var/cooldown = 0
-	var/list/cards = list()
+	var/list/datum/playingcard/cards = list()
 	/// Number of times we will duplicate our deck's contents when created. 2 makes a double sized deck, 3 makes triple sized, etc.
 	var/deck_size = 1
 	/// How many cards are dealt at a time when our holder deals a hand
@@ -126,6 +140,8 @@
 
 /obj/item/deck/proc/get_new_deck()
 	PROTECTED_PROC(TRUE)
+	SHOULD_CALL_PARENT(TRUE)
+	RETURN_TYPE(/list/datum/playingcard)
 	return list()
 
 /obj/item/deck/proc/shuffle_deck(mob/user)
@@ -137,16 +153,21 @@
 
 /obj/item/deck/attackby(obj/item/I, mob/user, params)
 	. = ..()
-
+	if(istype(I, /obj/item/card_hand))
+		var/obj/item/card_hand/CH = I
+		if(CH.our_deck != src)
+			to_chat(user, span_warning("[CH.cards.len > 1 ? "These cards" : "This card"] didn't come from this deck!"))
+			return
+		cards.Add(CH.cards)
+		user.visible_message(span_notice("\The [user] returns \the [CH] to \the [src]."), span_notice("I return \the [CH] to \the [src]."))
+		qdel(CH)
+		return
 
 /obj/item/deck/AltClick(mob/user)
-	if(!ishuman(user) || user.stat || !user.canUseTopic(src, BE_CLOSE))
-		return
 	. = ..()
 	if(.)
-		return
-	if(!cards.len)
-		to_chat(user, span_warning("It has no cards left to draw."))
+		return .
+	if(!ishuman(user) || user.stat || !user.canUseTopic(src, BE_CLOSE))
 		return
 	shuffle_deck(user)
 	user.changeNext_move(CLICK_CD_MELEE)
@@ -161,13 +182,13 @@
 	if(H.get_num_arms() <= 0)
 		to_chat(user, span_danger("WITH WHAT ARMS?"))
 		return
-	var/list/drawn_cards = list()
+	var/list/datum/playingcard/drawn_cards = list()
 	drawn_cards += cards[1]
 	var/obj/item/card_hand/C = new(loc.loc, src, drawn_cards)
 	if(!user.put_in_hands(C, del_on_fail = TRUE))
 		to_chat(user, span_warning("My hands are full!"))
 		return
-	drawn_cards -= cards[1]
+	cards.Cut(1, 2)
 	user.visible_message(span_notice("\The [user] draws a card."), span_notice("I draw a card."))
 	if(isturf(loc))
 		balloon_alert_to_viewers("1 card drawn...")
@@ -175,7 +196,7 @@
 /obj/item/deck/Initialize(mapload)
 	. = ..()
 	for(var/i = 0, i < deck_size, i++)
-		var/list/new_deck = get_new_deck()
+		var/list/datum/playingcard/new_deck = get_new_deck()
 		cards.Insert(1, new_deck)
 	cards = shuffle(cards)
 
