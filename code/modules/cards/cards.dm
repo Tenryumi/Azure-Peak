@@ -24,7 +24,8 @@
 	user.visible_message(span_notice("\The [user] looks into \the [src] and searches within it..."))
 	balloon_alert_to_viewers("searching...")
 
-	// We store the card names as a dictionary with the card name as the key and the number of duplicates of that card.
+	// We store the card names as an associated list with the card name as the key, and the value as the list of all unique instances of that card.
+	// We'll need to take each of these instances and list them with unique key strings when we present them all to the player.
 	// Why, you may ask?
 	// Because TGUI list selection UIs do NOT like items with duplicate keys strings. We must give each item a unique key string!
 	// This is in other words a workaround to TGUI jank.
