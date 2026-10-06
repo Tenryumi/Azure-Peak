@@ -6,7 +6,7 @@
 /** Helper proc for card game stuff that prompts the user to choose from a list of cards which selection of cards they wish to draw.
 * Returns which cards they wish to draw as `list`.
 */
-/obj/item/proc/get_cards_in_selection(list/datum/playingcard/card_list, mob/living/carbon/human/user, max_cards_selectable = 10)
+/obj/item/proc/get_cards_in_selection(list/datum/playingcard/card_list, mob/living/carbon/human/user, max_cards_selectable)
 	RETURN_TYPE(/list/datum/playingcard)
 
 	if(user.stat || !Adjacent(user)) return
@@ -107,6 +107,12 @@
 		return removed
 	else
 		return null
+
+/obj/item/card_hand/get_mechanics_examine(mob/user)
+	. = ..()
+	. += span_smallnotice("<b>Activate in-hand</b> to flip all cards in the hand face-up or face-down.")
+	. += span_smallnotice("<b>RIGHT CLICK</b> to draw a single card to your active hand. If your active hand is empty, a new hand of cards is made. If your active hand has a hand of cards already, the drawn card is added to it.")
+	. += span_smallnotice("<b>SHIFT + RIGHT CLICK</b> to search the hand for one or more cards and draw whichever ones were chosen. If your active hand is empty, a new hand of cards is made. If your active hand has a hand of cards already, the drawn card(s) is/are added to it.")
 
 /obj/item/card_hand/attackby(obj/item/I, mob/user, params)
 	if(!user || !ishuman(user) || user.stat)
@@ -386,7 +392,7 @@
 			SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user)
 			return TRUE
 		if(CH.cards >= MAX_HAND_SIZE)
-			to_chat(user, span_warning("The "))
+			SHOW_ERROR_HAND_FULL(user)
 		var/list/drawn_cards = get_drawn_cards(H, min(min(CH.cards.len, cards.len), MAX_HAND_SIZE))
 		if(drawn_cards?.len)
 			CH.cards.Add(drawn_cards)
@@ -447,10 +453,10 @@
 
 /obj/item/deck/get_mechanics_examine(mob/user)
 	. = ..()
-	. += span_smallnotice("I can CLICK-DRAG the deck into my hand slot to pick it up.")
-	. += span_smallnotice("I may USE this in my hand to choose whether to shuffle the deck, search it for specific cards to draw, or choose how many cards I wish to deal when dealing a hand.")
-	. += span_smallnotice("While holding the deck, I may deal cards with a single CLICK, which throws the card or cards to wherever I am aiming. LEFT CLICK deals a single card. RIGHT CLICK deals a hand of cards instead.")
-	. += span_smallnotice("My intents determine whether or not I will deal the cards face-down or face-up.")
+	. += span_smallnotice("<b>Activate in-hand</b> to quickly deal cards to those around you.")
+	. += span_smallnotice("<b>MIDDLE CLICK</b> to shuffle the deck.")
+	. += span_smallnotice("<b>RIGHT CLICK</b> to draw a single card to your active hand. If your active hand is empty, a new hand of cards is made. If your active hand has a hand of cards already, the drawn card is added to it.")
+	. += span_smallnotice("<b>SHIFT + RIGHT CLICK</b> to search the hand for one or more cards and draw whichever ones were chosen. If your active hand is empty, a new hand of cards is made. If your active hand has a hand of cards already, the drawn card(s) is/are added to it.")
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		if(can_user_cheat(H))
