@@ -11,13 +11,13 @@
 	sort_category = "Misc"
 
 /datum/loadout_item/tarot_deck
-	name = "Tarot Deck"
+	name = "Tarot Deck (Major Arcana Only)"
 	path = /obj/item/deck/tarot
 	sort_category = "Misc"
 
 /datum/loadout_item/tarot_deck_majorarcana
-	name = "Tarot Deck (Major Arcana)"
-	path = /obj/item/deck/tarot/majorarcana
+	name = "Tarot Deck (Major And Minor Arcana)"
+	path = /obj/item/deck/tarot/includes_minor_arcana
 	sort_category = "Misc"
 
 /datum/loadout_item/custom_book
