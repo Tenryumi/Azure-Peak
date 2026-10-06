@@ -76,20 +76,6 @@
 /datum/playingcard/proc/get_card_name()
 	return name
 
-// Card intents
-
-/datum/intent/hand/deal
-	name = "deal"
-	icon_state = "indeal"
-
-/datum/intent/hand/deal/faceup
-	name = "deal (face-up)"
-	icon_state = "indeal-faceup"
-
-/datum/intent/hand/deal/facedown
-	name = "deal (face-down)"
-	icon_state = "indeal-facedown"
-
 // Hand of cards. Holds one or more cards
 
 /obj/item/card_hand
@@ -327,7 +313,6 @@
 	var/number_cards_to_deal = 1
 	grid_width = 32
 	grid_height = 32
-	possible_item_intents = list(/datum/intent/hand/deal/facedown, /datum/intent/hand/deal/faceup)
 
 /obj/item/deck/proc/get_drawn_cards(mob/living/carbon/human/H, max_amt_to_draw = null)
 	var/list/cards_to_draw = get_cards_in_selection(cards.Copy(), H, max_amt_to_draw || min(cards.len, MAX_HAND_SIZE))
