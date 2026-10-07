@@ -100,6 +100,7 @@
 	w_class = WEIGHT_CLASS_SMALL
 	grid_width = 32
 	grid_height = 32
+	var/fake_direction = 0
 
 /obj/item/card_hand/proc/get_drawn_cards(mob/living/carbon/human/H, atom/drawing_to, max_amt_to_draw = null)
 	var/last_loc = drawing_to.loc
@@ -155,7 +156,8 @@
 
 /obj/item/card_hand/dropped(mob/user, silent)
 	. = ..()
-	update_icon(user.dir)
+	fake_direction = user.dir
+	update_icon()
 
 /obj/item/card_hand/attack_right(mob/user)
 	. = ..()
@@ -249,7 +251,7 @@
 	QDEL_LIST(cards)
 	return ..()
 
-/obj/item/card_hand/update_icon(direction = 0)
+/obj/item/card_hand/update_icon()
 	cut_overlays()
 
 	var/card_count = cards.len
@@ -274,9 +276,9 @@
 	var/offset = FLOOR(20/card_count, 1)
 
 	var/matrix/M = matrix()
-	if(direction)
+	if(fake_direction)
 		// Make the cards visually face direction the player (if any) was facing when we were placed
-		switch(direction)
+		switch(fake_direction)
 			if(NORTH)
 				M.Translate( 0,  0)
 			if(SOUTH)
@@ -292,7 +294,7 @@
 	for(var/datum/playingcard/P in cards)
 		var/image/I = P.get_card_image(src, concealed)
 		// Pixel offsets to keep us visually where a player would expect us to go when placing us on a table
-		switch(direction)
+		switch(fake_direction)
 			if(SOUTH)
 				I.pixel_x = 8-(offset*i)
 			if(WEST)
@@ -307,6 +309,7 @@
 
 /obj/item/card_hand/pickup(mob/user)
 	. = ..()
+	fake_direction = 0
 	update_icon()
 
 /obj/item/card_hand/Initialize(mapload, obj/item/deck/source_deck, list/_cards, concealed = TRUE)
