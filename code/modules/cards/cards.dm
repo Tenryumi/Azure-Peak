@@ -160,8 +160,8 @@
 	var/thing_in_hand = H.get_active_held_item()
 	if(!thing_in_hand && cards.len > 1)
 		// Take the first card in our hand and give it to the new one
-		var/datum/playingcard/PC = cards[1]
-		cards.Cut(1, 2)
+		var/datum/playingcard/PC = cards[cards.len]
+		cards.Cut(cards.len, cards.len + 1)
 		var/obj/item/card_hand/CH = new(user.loc, our_deck, list(PC), concealed)
 		H.put_in_active_hand(CH)
 		if(isturf(loc))
@@ -176,9 +176,9 @@
 		if(CH.cards.len >= MAX_HAND_SIZE)
 			SHOW_ERROR_HAND_FULL(user)
 			return
-		var/datum/playingcard/PC = cards[1]
-		cards.Cut(1, 2)
-		CH.cards.Insert(1, PC)
+		var/datum/playingcard/PC = cards[cards.len]
+		cards.Cut(cards.len, cards.len + 1)
+		CH.cards.Add(PC)
 		CH.update_icon()
 		if(!try_delete_self_if_no_cards())
 			if(isturf(loc))
@@ -411,8 +411,8 @@
 	var/thing_in_hand = H.get_active_held_item()
 	if(!thing_in_hand && cards.len > 1)
 		// Take the first card in our hand and give it to the new one
-		var/datum/playingcard/PC = cards[1]
-		cards.Cut(1, 2)
+		var/datum/playingcard/PC = cards[cards.len]
+		cards.Cut(cards.len, cards.len + 1)
 		var/obj/item/card_hand/CH = new(user.loc, src, list(PC), TRUE)
 		H.put_in_active_hand(CH)
 		if(isturf(loc))
@@ -426,9 +426,9 @@
 		if(CH.cards.len >= MAX_HAND_SIZE)
 			SHOW_ERROR_HAND_FULL(user)
 			return
-		var/datum/playingcard/PC = cards[1]
-		cards.Cut(1, 2)
-		CH.cards.Insert(1, PC)
+		var/datum/playingcard/PC = cards[cards.len]
+		cards.Cut(cards.len, cards.len + 1)
+		CH.cards.Add(PC)
 		CH.update_icon()
 		if(isturf(loc))
 			balloon_alert_to_viewers("1 card drawn...")
