@@ -13,7 +13,7 @@
 			pcard.front_icon_state = "[number]-[suit]"
 			pcard.back_icon_state = back_icon_state
 			pcard.icon = icon
-			. += pcard // Make it so.
+			. += pcard // Make it so. // side note: I've been driving myself insane reworking cards LET ME HAVE MY FUN!!!! - Ryumi
 
 /obj/item/deck/cards/triple
 	name = "triple-sized deck of playing cards"
