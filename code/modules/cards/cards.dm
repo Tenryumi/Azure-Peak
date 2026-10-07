@@ -6,6 +6,66 @@
 #define VISIBLE_MESSAGE_CARD_DRAWN_HAND(user) user.visible_message(span_notice("\The [user] draws a card from another hand."), span_notice("I draw a card from another hand."))
 #define BALLOON_ALERT_CARD_DRAWN(user) balloon_alert_to_viewers("1 card drawn...")
 
+/datum/playingcard
+	/** Protected variable.
+
+	If getting/setting publicly, use `get_name()` / `set_name()`
+	*/
+	VAR_PROTECTED/name = "playing card"
+	/** Protected variable.
+
+	If getting publicly, use `get_card_image()` and use the icon_state that is returned.
+
+	If setting, use `set_front_icon_state()`
+	*/
+	VAR_PROTECTED/front_icon_state = "hand1"
+	/** Protected variable.
+
+	If getting publicly, use `get_card_image()` and use the icon_state that is returned.
+
+	If setting, use `set_back_icon_state()`
+	*/
+	VAR_PROTECTED/back_icon_state = "singlecard_down"
+	/** Protected variable.
+
+	If getting publicly, use `get_card_image()` and use the icon that is returned.
+
+	If setting, use `set_icon()`
+	*/
+	VAR_PROTECTED/icon = 'icons/roguetown/items/cards/playingcards.dmi'
+	var/obj/item/deck/our_deck
+
+/**
+	Gets an image of the card.
+	#### Arguments:
+	* `image_loc`: Location of the image to be rendered.
+	* `is_concealed`: Is the card supposed to be concealed (aka face down)?
+	#### Returns:
+	(`/image`) An image of the card.
+*/
+/datum/playingcard/proc/get_card_image(image_loc, is_concealed)
+	RETURN_TYPE(/image)
+	return image(src.icon, image_loc, is_concealed ? back_icon_state : front_icon_state)
+
+/datum/playingcard/proc/get_name()
+	return name
+
+/datum/playingcard/proc/set_name(card_name)
+	name = card_name
+
+/datum/playingcard/proc/set_front_icon_state(front_icon_state)
+	src.front_icon_state = front_icon_state
+
+/datum/playingcard/proc/set_back_icon_state(back_icon_state)
+	src.back_icon_state = back_icon_state
+
+/datum/playingcard/proc/set_icon(icon)
+	src.icon = icon
+
+/// Called when the card is shuffled.
+/datum/playingcard/proc/on_shuffle()
+	return
+
 /** Helper proc for card game stuff that prompts the user to choose from a list of cards which selection of cards they wish to draw.
 * Returns which cards they wish to draw as `list`.
 */
@@ -30,11 +90,11 @@
 	// We store the card names as an associated list with the card name as the key, and the value as the list of all unique instances of that card.
 	// We'll need to take each of these instances and list them with unique key strings when we present them all to the player.
 	// Why, you may ask?
-	// Because TGUI list selection UIs do NOT like items with duplicate keys strings. We must give each item a unique key string!
+	// Because TGUI list selection UIs do NOT like items with duplicate key strings. We must give each item a unique key string!
 	// This is in other words a workaround to TGUI jank.
 	var/list/card_names = list()
 	for(var/datum/playingcard/P in card_list)
-		var/name = P.name
+		var/name = P.get_name()
 		// If we haven't yet found any cards with this name...
 		if(!card_names[name])
 			// ... Add them to a new list, where we'll store any duplicates!
@@ -59,7 +119,7 @@
 			// Ignore the duplicate number at the end, we just want the card name itself!
 			var/TDN = copytext(to_draw, 1, length(to_draw) - 3)
 			var/datum/playingcard/P = card_list[i]
-			if(TDN == P.name)
+			if(TDN == P.get_name())
 				card_list.Cut(i, i+1)
 				. += P
 				break
@@ -72,20 +132,6 @@
 		balloon_alert_to_viewers("[cards_to_draw.len] card[cards_to_draw.len > 1 ? "s" : ""] drawn...")
 	user.visible_message(span_notice("\The [user] searches for specific cards in \the [src], and draws [cards_to_draw.len]."))
 	return .
-
-/datum/playingcard
-	var/name = "playing card"
-	var/front_icon_state = "hand1"
-	var/back_icon_state = "singlecard_down"
-	var/icon = 'icons/roguetown/items/cards/playingcards.dmi'
-	var/obj/item/deck/our_deck
-
-/datum/playingcard/proc/get_card_image(image_loc, is_concealed)
-	RETURN_TYPE(/image)
-	return image(src.icon, image_loc, is_concealed ? back_icon_state : front_icon_state)
-
-/datum/playingcard/proc/get_card_name()
-	return name
 
 // Hand of cards. Holds one or more cards
 
@@ -152,7 +198,7 @@
 		. += "<details><summary>[span_notice("Cards in Hand:")]</summary>"
 		for(var/datum/playingcard/C in cards)
 			var/image/I = C.get_card_image(user, FALSE)
-			. += span_notice("[icon2html(I, user)] [C.get_card_name()]")
+			. += span_notice("[icon2html(I, user)] [C.get_name()]")
 		. += "</details>"
 
 /obj/item/card_hand/dropped(mob/user, silent)
@@ -343,8 +389,6 @@
 	var/hand_size = 5
 	/// Icon state used for the backs of the cards this deck provides.
 	var/back_icon_state = "singlecard_down"
-	/// The number of cards we'll deal when dealing hands at a time.
-	var/number_cards_to_deal = 1
 	grid_width = 32
 	grid_height = 32
 
@@ -371,12 +415,15 @@
 	RETURN_TYPE(/list/datum/playingcard)
 	return list()
 
-/obj/item/deck/proc/shuffle_deck(mob/user)
+/obj/item/deck/proc/shuffle_deck(mob/user = null, silent = FALSE)
 	if(cooldown < world.time - 25)
 		cards = shuffle(cards)
-		playsound(src, 'sound/items/cardshuffle.ogg', 100, TRUE)
-		user.visible_message(span_notice("[user] shuffles the deck."), span_notice("I shuffle the deck."), span_notice("I hear the shuffling of cards."))
+		for(var/datum/playingcard/P in cards)
+			P.on_shuffle()
 		cooldown = world.time
+		if(!silent && user != null)
+			playsound(src, 'sound/items/cardshuffle.ogg', 100, TRUE)
+			user.visible_message(span_notice("[user] shuffles the deck."), span_notice("I shuffle the deck."), span_notice("I hear the shuffling of cards."))
 
 /obj/item/deck/Destroy()
 	QDEL_LIST(cards)
@@ -487,7 +534,7 @@
 	for(var/i = 0, i < deck_size, i++)
 		var/list/datum/playingcard/new_deck = get_new_deck()
 		cards.Insert(1, new_deck)
-	cards = shuffle(cards)
+	shuffle_deck(null, TRUE)
 
 /obj/item/deck/examine()
 	. = ..()

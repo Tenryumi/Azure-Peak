@@ -9,10 +9,10 @@
 	for(var/suit in list("spades","clubs","diamonds","hearts"))
 		for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten","jack","queen","king"))
 			var/datum/playingcard/pcard = new()
-			pcard.name = "[capitalize(number)] of [capitalize(suit)]"
-			pcard.front_icon_state = "[number]-[suit]"
-			pcard.back_icon_state = back_icon_state
-			pcard.icon = icon
+			pcard.set_name("[capitalize(number)] of [capitalize(suit)]")
+			pcard.set_front_icon_state("[number]-[suit]")
+			pcard.set_back_icon_state(back_icon_state)
+			pcard.set_icon(icon)
 			. += pcard // Make it so. // side note: I've been driving myself insane reworking cards LET ME HAVE MY FUN!!!! - Ryumi
 
 /obj/item/deck/cards/triple
@@ -58,20 +58,20 @@
 	)
 	for(var/key, value in major_arcana)
 		var/datum/playingcard/pcard = new()
-		pcard.name = key
-		pcard.front_icon_state = value
-		pcard.back_icon_state = back_icon_state
-		pcard.icon = icon
+		pcard.set_name(key)
+		pcard.set_front_icon_state(value)
+		pcard.set_back_icon_state(back_icon_state)
+		pcard.set_icon(icon)
 		. += pcard
 	// If we want the minor arcana too, include that!
 	if(has_minor_arcana)
 		for(var/suit in list("swords","wands","cups","pentacles"))
 			for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten","page","knight","queen","king"))
 				var/datum/playingcard/pcard = new()
-				pcard.name = "[capitalize(number)] of [capitalize(suit)]"
-				pcard.front_icon_state = "[number]-[suit]"
-				pcard.back_icon_state = back_icon_state
-				pcard.icon = icon
+				pcard.set_name("[capitalize(number)] of [capitalize(suit)]")
+				pcard.set_front_icon_state("[number]-[suit]")
+				pcard.set_back_icon_state(back_icon_state)
+				pcard.set_icon(icon)
 				. += pcard
 
 #undef TAROT_DECK_DESCRIPTION
