@@ -74,8 +74,6 @@
 	var/name = "playing card"
 	var/front_icon_state = "hand1"
 	var/back_icon_state = "singlecard_down"
-	/// If this is TRUE, the card will be rendered upside-down.
-	var/reversed = FALSE
 	var/icon = 'icons/roguetown/items/cards/playingcards.dmi'
 	var/obj/item/deck/our_deck
 
