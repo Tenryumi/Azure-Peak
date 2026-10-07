@@ -5441,7 +5441,7 @@
 	dir = 1
 	},
 /obj/structure/table/wood/poor,
-/obj/item/deck/tarot/includes_major_arcana{
+/obj/item/deck/tarot/includes_minor_arcana{
 	pixel_x = 9;
 	pixel_y = -2
 	},
@@ -156047,7 +156047,7 @@
 /area/rogue/outdoors/rtfield/grim/south)
 "sWm" = (
 /obj/structure/table/wood/poor,
-/obj/item/deck/tarot/includes_major_arcana,
+/obj/item/deck/tarot/includes_minor_arcana,
 /turf/open/floor/rogue/ruinedwood/platform,
 /area/rogue/outdoors/town/grim)
 "sWo" = (
