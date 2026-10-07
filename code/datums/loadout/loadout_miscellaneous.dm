@@ -5,6 +5,11 @@
 	path = /obj/item/deck/cards
 	sort_category = "Misc"
 
+/datum/loadout_item/card_deck_triple
+	name = "Card Deck (3x Cards)"
+	path = /obj/item/deck/cards/triple
+	sort_category = "Misc"
+
 /datum/loadout_item/farkle_dice
 	name = "Farkle Dice Container"
 	path = /obj/item/storage/pill_bottle/dice/farkle
