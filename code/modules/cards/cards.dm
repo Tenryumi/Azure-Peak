@@ -97,6 +97,9 @@
 	/// The original deck we come from. Our cards can ONLY be taken from / put into this deck, and no other.
 	var/obj/item/deck/our_deck = null
 	var/concealed = TRUE
+	w_class = WEIGHT_CLASS_SMALL
+	grid_width = 32
+	grid_height = 32
 
 /obj/item/card_hand/proc/get_drawn_cards(mob/living/carbon/human/H, atom/drawing_to, max_amt_to_draw = null)
 	var/last_loc = drawing_to.loc
