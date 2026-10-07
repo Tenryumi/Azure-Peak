@@ -61,6 +61,10 @@
 				. += P
 				break
 
+	// I mean... it can happen!
+	if(!src)
+		return null
+
 	if(isturf(loc))
 		balloon_alert_to_viewers("[cards_to_draw.len] card[cards_to_draw.len > 1 ? "s" : ""] drawn...")
 	user.visible_message(span_notice("\The [user] searches for specific cards in \the [src], and draws [cards_to_draw.len]."))
@@ -94,8 +98,11 @@
 	var/obj/item/deck/our_deck = null
 	var/concealed = TRUE
 
-/obj/item/card_hand/proc/get_drawn_cards(mob/living/carbon/human/H, max_amt_to_draw = null)
+/obj/item/card_hand/proc/get_drawn_cards(mob/living/carbon/human/H, atom/drawing_to, max_amt_to_draw = null)
+	var/last_loc = drawing_to.loc
 	var/list/cards_to_draw = get_cards_in_selection(cards.Copy(), H, max_amt_to_draw || min(cards.len, MAX_HAND_SIZE))
+	if(!src || !drawing_to || drawing_to.loc != last_loc)
+		return null
 	if(cards_to_draw?.len && Adjacent(H))
 		var/list/removed = list()
 		for(var/datum/playingcard/card_draw in cards_to_draw)
@@ -196,8 +203,10 @@
 	// If we're right clicking with an empty hand, make a new hand!
 	if(!thing_in_hand && cards.len > 1)
 		// Let the user choose which cards to remove
-		var/list/drawn_cards = get_drawn_cards(H)
-		if(drawn_cards?.len)
+		var/list/drawn_cards = get_drawn_cards(H, H)
+		if(!drawn_cards)
+			return TRUE
+		if(src && drawn_cards.len )
 			var/obj/item/card_hand/CH = new(user.loc, our_deck, drawn_cards, concealed)
 			H.put_in_active_hand(CH)
 			if(!try_delete_self_if_no_cards())
@@ -209,8 +218,18 @@
 		if(CH.our_deck != our_deck)
 			SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user)
 			return TRUE
-		var/list/drawn_cards = get_drawn_cards(H, min(CH.cards.len, cards.len))
-		if(drawn_cards?.len)
+		if(cards.len >= MAX_HAND_SIZE)
+			SHOW_ERROR_HAND_FULL(user)
+			return TRUE
+		var/their_max = MAX_HAND_SIZE - CH.cards.len
+		// Sanity check
+		if(their_max <= 0)
+			return TRUE
+		var/drawn_max = clamp(their_max, 1, MAX_HAND_SIZE)
+		var/list/drawn_cards = get_drawn_cards(H, CH, min(drawn_max, MAX_HAND_SIZE))
+		if(!drawn_cards)
+			return TRUE
+		if(drawn_cards.len)
 			CH.cards.Add(drawn_cards)
 			CH.update_icon()
 			if(!try_delete_self_if_no_cards())
@@ -307,6 +326,7 @@
 	icon_state = "deck_full"
 	w_class = WEIGHT_CLASS_SMALL
 	var/cooldown = 0
+	var/last_touched = 0
 	var/list/datum/playingcard/cards = list()
 	/// Number of times we will duplicate our deck's contents when created. 2 makes a double sized deck, 3 makes triple sized, etc.
 	var/deck_size = 1
@@ -319,8 +339,11 @@
 	grid_width = 32
 	grid_height = 32
 
-/obj/item/deck/proc/get_drawn_cards(mob/living/carbon/human/H, max_amt_to_draw = null)
+/obj/item/deck/proc/get_drawn_cards(mob/living/carbon/human/H, atom/drawing_to, max_amt_to_draw = null)
+	var/last_loc = drawing_to.loc
 	var/list/cards_to_draw = get_cards_in_selection(cards.Copy(), H, max_amt_to_draw || min(cards.len, MAX_HAND_SIZE))
+	if(!src || !drawing_to || drawing_to.loc != last_loc)
+		return null
 	if(cards_to_draw?.len && Adjacent(H))
 		var/list/removed = list()
 		for(var/datum/playingcard/card_draw in cards_to_draw)
@@ -332,10 +355,6 @@
 		return removed
 	else
 		return null
-
-/// Returns whether or not the given user is able to access cheating mechanics.
-/obj/item/deck/proc/can_user_cheat(mob/living/carbon/human/user)
-	return TRUE
 
 /obj/item/deck/proc/get_new_deck()
 	PROTECTED_PROC(TRUE)
@@ -350,11 +369,14 @@
 		user.visible_message(span_notice("[user] shuffles the deck."), span_notice("I shuffle the deck."), span_notice("I hear the shuffling of cards."))
 		cooldown = world.time
 
+/obj/item/deck/Destroy()
+	QDEL_LIST(cards)
+	return ..()
+
 /obj/item/deck/attack_self(mob/user)
 	. = ..()
-	var/choice = tgui_input_number(user, "How many cards do I want to deal at a time when dealing hands?", "DEALER PREPERATION", 5, MAX_HAND_SIZE, 1)
-	if(choice)
-		number_cards_to_deal = choice
+	shuffle_deck(user)
+	user.changeNext_move(CLICK_CD_MELEE)
 
 /obj/item/deck/attackby(obj/item/I, mob/user, params)
 	. = ..()
@@ -380,8 +402,10 @@
 	// If we're right clicking with an empty hand, make a new hand!
 	if(!thing_in_hand && cards.len > 1)
 		// Let the user choose which cards to remove
-		var/list/drawn_cards = get_drawn_cards(H, min(cards.len, MAX_HAND_SIZE))
-		if(drawn_cards?.len)
+		var/list/drawn_cards = get_drawn_cards(H, H, min(cards.len, MAX_HAND_SIZE))
+		if(!drawn_cards)
+			return TRUE
+		if(drawn_cards.len)
 			var/obj/item/card_hand/CH = new(user.loc, src, drawn_cards, TRUE)
 			H.put_in_active_hand(CH)
 		return TRUE
@@ -391,10 +415,17 @@
 		if(CH.our_deck != src)
 			SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user)
 			return TRUE
-		if(CH.cards >= MAX_HAND_SIZE)
+		if(CH.cards.len >= MAX_HAND_SIZE)
 			SHOW_ERROR_HAND_FULL(user)
-		var/list/drawn_cards = get_drawn_cards(H, min(min(CH.cards.len, cards.len), MAX_HAND_SIZE))
-		if(drawn_cards?.len)
+		var/their_max = MAX_HAND_SIZE - CH.cards.len
+		// Sanity check
+		if(their_max <= 0)
+			return TRUE
+		var/drawn_max = clamp(their_max, 1, MAX_HAND_SIZE)
+		var/list/drawn_cards = get_drawn_cards(H, CH, min(drawn_max, MAX_HAND_SIZE))
+		if(!drawn_cards)
+			return TRUE
+		if(drawn_cards.len)
 			CH.cards.Add(drawn_cards)
 			CH.update_icon()
 		return TRUE
@@ -417,6 +448,7 @@
 		H.put_in_active_hand(CH)
 		if(isturf(loc))
 			balloon_alert_to_viewers("1 card drawn...")
+		user.visible_message(span_notice("\The [user] draws a card from \the [src]."), span_notice("I draw a card from \the [src]."))
 	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
@@ -432,6 +464,7 @@
 		CH.update_icon()
 		if(isturf(loc))
 			balloon_alert_to_viewers("1 card drawn...")
+		user.visible_message(span_notice("\The [user] draws a card from \the [src]."), span_notice("I draw a card from \the [src]."))
 
 /obj/item/deck/MiddleClick(mob/user, params)
 	. = ..()
@@ -453,14 +486,9 @@
 
 /obj/item/deck/get_mechanics_examine(mob/user)
 	. = ..()
-	. += span_smallnotice("<b>Activate in-hand</b> to quickly deal cards to those around you.")
 	. += span_smallnotice("<b>MIDDLE CLICK</b> to shuffle the deck.")
 	. += span_smallnotice("<b>RIGHT CLICK</b> to draw a single card to your active hand. If your active hand is empty, a new hand of cards is made. If your active hand has a hand of cards already, the drawn card is added to it.")
 	. += span_smallnotice("<b>SHIFT + RIGHT CLICK</b> to search the hand for one or more cards and draw whichever ones were chosen. If your active hand is empty, a new hand of cards is made. If your active hand has a hand of cards already, the drawn card(s) is/are added to it.")
-	if(ishuman(user))
-		var/mob/living/carbon/human/H = user
-		if(can_user_cheat(H))
-			. += span_smallracialstatinfo("Thanks to Xylix's gifts, I may also CHEAT.")
 
 
 
