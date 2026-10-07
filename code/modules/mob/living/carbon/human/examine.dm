@@ -811,10 +811,10 @@
 			else
 				. += span_notice("Something about them seems... different.")
 
-		if((HAS_TRAIT(user, TRAIT_ANCIENT_HAG) || HAS_TRAIT(user, TRAIT_FEYTOUCHED) || istype(user, /mob/living/carbon/human/species/familiar/fae)) && HAS_TRAIT(src, TRAIT_FEYTOUCHED))
+		if((HAS_TRAIT(user, TRAIT_ANCIENT_HAG) || HAS_TRAIT(user, TRAIT_FEYBOUND) || HAS_TRAIT(user, TRAIT_FEYTOUCHED) || istype(user, /mob/living/carbon/human/species/familiar/fae)) && (HAS_TRAIT(src, TRAIT_FEYBOUND) || HAS_TRAIT(src, TRAIT_FEYTOUCHED)))
 			. += span_nicegreen("Someone touched by, or created by fey. Perhaps a vessel of the past, or a deeply affected puppet.")
 
-		if((HAS_TRAIT(user, TRAIT_FEYTOUCHED) ||	istype(user, /mob/living/carbon/human/species/familiar/fae)) && HAS_TRAIT(src, TRAIT_ANCIENT_HAG))
+		if((HAS_TRAIT(user, TRAIT_FEYBOUND) || HAS_TRAIT(user, TRAIT_FEYTOUCHED) ||	istype(user, /mob/living/carbon/human/species/familiar/fae)) && HAS_TRAIT(src, TRAIT_ANCIENT_HAG))
 			. += span_nicegreen("A true force of the fey, the mossmother speaks to this one closely.")
 
 		if(SSticker.rulermob == src)
@@ -838,11 +838,12 @@
 			. += span_notice("An agent of the Bathhouse.")
 
 		if(src.job in GLOB.church_positions)
-			. += span_notice("A member of the Church of Azuria.")
+			if(!HAS_TRAIT(user, TRAIT_CLERGY))
+				. += span_notice("A member of the Church of Azuria.")
 		else if(HAS_TRAIT(src, TRAIT_AGENT_CHURCH))
 			. += span_notice("A benefactor of the Church of Azuria.")
 
-		if(src.job in GLOB.inquisition_positions)
+		if(src.job in GLOB.inquisition_positions && !HAS_TRAIT(user, TRAIT_INQUISITION))
 			. += span_notice("An adherent of the Holy Otavan Inquisition.")
 
 		if(HAS_TRAIT(src, TRAIT_DEBTOR))
