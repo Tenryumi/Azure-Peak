@@ -1,7 +1,10 @@
 #define MAX_HAND_SIZE 10
-#define SHOW_ERROR_HAND_FULL(user) (to_chat(user, span_warning("It can't hold any more cards.")))
-#define SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user) (to_chat(user, span_warning("These cards come from a different deck. I can't mix them.")))
-#define SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user) (to_chat(user, span_danger("WITH WHAT ARMS?")))
+#define SHOW_ERROR_HAND_FULL(user) to_chat(user, span_warning("It can't hold any more cards."))
+#define SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK(user) to_chat(user, span_warning("These cards come from a different deck. I can't mix them."))
+#define SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user) to_chat(user, span_danger("WITH WHAT ARMS?"))
+#define VISIBLE_MESSAGE_CARD_DRAWN_DECK(user) user.visible_message(span_notice("\The [user] draws a card from \the [src]."), span_notice("I draw a card from \the [src]."))
+#define VISIBLE_MESSAGE_CARD_DRAWN_HAND(user) user.visible_message(span_notice("\The [user] draws a card from another hand."), span_notice("I draw a card from another hand."))
+#define BALLOON_ALERT_CARD_DRAWN(user) balloon_alert_to_viewers("1 card drawn...")
 
 /** Helper proc for card game stuff that prompts the user to choose from a list of cards which selection of cards they wish to draw.
 * Returns which cards they wish to draw as `list`.
@@ -175,7 +178,8 @@
 		var/obj/item/card_hand/CH = new(user.loc, our_deck, list(PC), concealed)
 		H.put_in_active_hand(CH)
 		if(isturf(loc))
-			balloon_alert_to_viewers("1 card drawn...")
+			BALLOON_ALERT_CARD_DRAWN(user)
+		VISIBLE_MESSAGE_CARD_DRAWN_HAND(user)
 		update_icon()
 	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
@@ -190,9 +194,10 @@
 		cards.Cut(cards.len, cards.len + 1)
 		CH.cards.Add(PC)
 		CH.update_icon()
+		VISIBLE_MESSAGE_CARD_DRAWN_HAND(user)
 		if(!try_delete_self_if_no_cards())
 			if(isturf(loc))
-				balloon_alert_to_viewers("1 card drawn...")
+				BALLOON_ALERT_CARD_DRAWN(user)
 			update_icon()
 
 /obj/item/card_hand/ShiftRightClick(mob/user)
@@ -450,9 +455,9 @@
 		cards.Cut(cards.len, cards.len + 1)
 		var/obj/item/card_hand/CH = new(user.loc, src, list(PC), TRUE)
 		H.put_in_active_hand(CH)
+		VISIBLE_MESSAGE_CARD_DRAWN_DECK(user)
 		if(isturf(loc))
-			balloon_alert_to_viewers("1 card drawn...")
-		user.visible_message(span_notice("\The [user] draws a card from \the [src]."), span_notice("I draw a card from \the [src]."))
+			BALLOON_ALERT_CARD_DRAWN(user)
 	// If we're right clicking with another hand of cards, do the same thing but we just transfer that hand
 	else if(istype(thing_in_hand, /obj/item/card_hand))
 		var/obj/item/card_hand/CH = thing_in_hand
@@ -467,8 +472,8 @@
 		CH.cards.Add(PC)
 		CH.update_icon()
 		if(isturf(loc))
-			balloon_alert_to_viewers("1 card drawn...")
-		user.visible_message(span_notice("\The [user] draws a card from \the [src]."), span_notice("I draw a card from \the [src]."))
+			BALLOON_ALERT_CARD_DRAWN(user)
+		VISIBLE_MESSAGE_CARD_DRAWN_DECK(user)
 
 /obj/item/deck/MiddleClick(mob/user, params)
 	. = ..()
@@ -495,9 +500,10 @@
 	. += span_smallnotice("<b>SHIFT + RIGHT CLICK</b> to search the hand for one or more cards and draw whichever ones were chosen. If your active hand is empty, a new hand of cards is made. If your active hand has a hand of cards already, the drawn card(s) is/are added to it.")
 
 
-
 #undef SHOW_ERROR_HAND_FULL
 #undef SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS
 #undef SHOW_ERROR_CARDS_FROM_DIFFERENT_DECK
+#undef VISIBLE_MESSAGE_CARD_DRAWN_DECK
+#undef VISIBLE_MESSAGE_CARD_DRAWN_HAND
+#undef BALLOON_ALERT_CARD_DRAWN
 #undef MAX_HAND_SIZE
-
