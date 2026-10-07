@@ -69621,7 +69621,7 @@
 /area/rogue/indoors/town)
 "mfi" = (
 /obj/structure/table/wood/long_table/right,
-/obj/item/toy/cards/deck/syndicate{
+/obj/item/deck/cards{
 	pixel_y = 6
 	},
 /obj/machinery/light/rogue/candle/r,
@@ -103926,7 +103926,6 @@
 	pixel_x = 17;
 	pixel_y = 24
 	},
-/obj/item/toy/cards/cardhand,
 /turf/open/floor/carpet/royalblack,
 /area/rogue/indoors/town/garrison)
 "scY" = (
