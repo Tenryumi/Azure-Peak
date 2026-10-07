@@ -173525,14 +173525,6 @@
 /area/rogue/indoors/town/grim)
 "uYH" = (
 /obj/structure/table/wood/poor,
-/obj/item/toy/cards/cardhand{
-	pixel_x = 12;
-	pixel_y = 2
-	},
-/obj/item/toy/cards/cardhand{
-	pixel_x = -10;
-	pixel_y = 3
-	},
 /obj/item/deck/cards,
 /turf/open/floor/rogue/concrete,
 /area/rogue/under/cave/licharena/grim)

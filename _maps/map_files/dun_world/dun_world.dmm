@@ -103926,7 +103926,6 @@
 	pixel_x = 17;
 	pixel_y = 24
 	},
-/obj/item/toy/cards/cardhand,
 /turf/open/floor/carpet/royalblack,
 /area/rogue/indoors/town/garrison)
 "scY" = (
@@ -112558,7 +112557,7 @@
 	pixel_x = -9;
 	pixel_y = 14
 	},
-/obj/item/deck/tarot/majorarcana,
+/obj/item/deck/tarot,
 /turf/open/floor/rogue/ruinedwood/spiral,
 /area/rogue/indoors/town/tavern)
 "tAW" = (
