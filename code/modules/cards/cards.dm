@@ -443,7 +443,7 @@
 			to_chat(user, span_warning("[CH.cards.len > 1 ? "These cards" : "This card"] didn't come from this deck!"))
 			return
 		cards.Add(CH.cards)
-		user.visible_message(span_notice("\The [user] returns \the [CH] to \the [src]."), span_notice("I return \the [CH] to \the [src]."))
+		user.visible_message(span_notice("\The [user] returns \the [CH] to the bottom of \the [src]."), span_notice("I return \the [CH] to the bottom of \the [src]."))
 		qdel(CH)
 		user.changeNext_move(CLICK_CD_FAST)
 		return
