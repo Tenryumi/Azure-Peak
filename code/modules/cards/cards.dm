@@ -48,6 +48,7 @@
 	return image(src.icon, image_loc, is_concealed ? back_icon_state : front_icon_state)
 
 /datum/playingcard/proc/get_name()
+	SHOULD_CALL_PARENT(TRUE)
 	return name
 
 /datum/playingcard/proc/set_name(card_name)

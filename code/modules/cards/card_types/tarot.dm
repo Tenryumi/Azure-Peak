@@ -1,23 +1,25 @@
 #define TAROT_DECK_DESCRIPTION "The Mouthpiece of Xylix, given to mortals long ago. See fate. Never bend a corner."
 
-/obj/item/deck/cards
-	name = "deck of playing cards"
-	desc = "To the Xylixians; sacred. To the rest of the church of the Ten; a source of moral decay."
+/datum/playingcard/tarot
+	var/reversed = FALSE
 
-/obj/item/deck/cards/get_new_deck()
+/datum/playingcard/tarot/on_shuffle(mob/user = null, silent = FALSE)
 	. = ..()
-	for(var/suit in list("spades","clubs","diamonds","hearts"))
-		for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten","jack","queen","king"))
-			var/datum/playingcard/pcard = new()
-			pcard.set_name("[capitalize(number)] of [capitalize(suit)]")
-			pcard.set_front_icon_state("[number]-[suit]")
-			pcard.set_back_icon_state(back_icon_state)
-			pcard.set_icon(icon)
-			. += pcard // Make it so. // side note: I've been driving myself insane reworking cards LET ME HAVE MY FUN!!!! - Ryumi
+	if(prob(50))
+		reversed = !reversed
 
-/obj/item/deck/cards/triple
-	name = "triple-sized deck of playing cards"
-	deck_size = 3
+/datum/playingcard/tarot/get_name()
+	. = ..()
+	if(reversed)
+		. += " (Reversed)"
+
+/datum/playingcard/tarot/get_card_image(image_loc, is_concealed)
+	. = ..()
+	var/image/I = .
+	if(reversed)
+		var/matrix/M = matrix()
+		M.Turn(180)
+		I.transform = M
 
 /obj/item/deck/tarot
 	name = "tarot deck (major arcana)"
@@ -57,7 +59,7 @@
 		"Judgement" = "judgement",
 	)
 	for(var/key, value in major_arcana)
-		var/datum/playingcard/pcard = new()
+		var/datum/playingcard/tarot/pcard = new()
 		pcard.set_name(key)
 		pcard.set_front_icon_state(value)
 		pcard.set_back_icon_state(back_icon_state)
@@ -67,7 +69,7 @@
 	if(has_minor_arcana)
 		for(var/suit in list("swords","wands","cups","pentacles"))
 			for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten","page","knight","queen","king"))
-				var/datum/playingcard/pcard = new()
+				var/datum/playingcard/tarot/pcard = new()
 				pcard.set_name("[capitalize(number)] of [capitalize(suit)]")
 				pcard.set_front_icon_state("[number]-[suit]")
 				pcard.set_back_icon_state(back_icon_state)
