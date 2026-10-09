@@ -18,7 +18,7 @@
 		/datum/species/white_stag,
 	)
 	// lazy checks here
-	if(maxHealth > 500 || HAS_TRAIT(src, TRAIT_HARDDISMEMBER)) // most high-end monsters have HP above 1000, so this is a safe number I hope / HARDDISMEMBER for the lazy people who don't want to be updating this over and over when making their own mobs
+	if(maxHealth > 500 || HAS_TRAIT(src, TRAIT_HARDDISMEMBER) || HAS_TRAIT(src, TRAIT_NODISMEMBER)) // most high-end monsters have HP above 1000, so this is a safe number I hope / HARDDISMEMBER for the lazy people who don't want to be updating this over and over when making their own mobs
 		return FALSE
 
 	for(var/mob_type in gib_blacklist)
