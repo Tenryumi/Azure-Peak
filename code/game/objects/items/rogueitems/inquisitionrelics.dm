@@ -1591,8 +1591,7 @@ Inquisitorial armory down here
 	if(target)
 		target.playsound_local(src, 'sound/items/blackeye_warn.ogg', 100, FALSE)
 		effect = target.throw_alert(usr, "blackmirror", /atom/movable/screen/alert/blackmirror, override = TRUE)
-		if(effect)
-			effect.source = src
+		effect?.source = src
 	if(active)
 		soundloop.start()
 	opened = TRUE
