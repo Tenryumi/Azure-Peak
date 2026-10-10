@@ -1070,7 +1070,7 @@
 		target.apply_status_effect(/datum/status_effect/debuff/staggered)
 
 		if(target.stat != CONSCIOUS)
-			critbang += 100 // F I N I S H  H I M . . !
+			critbang += 50
 
 		if(can_crit && !target.mind && prob(critbang))
 			if(!target.can_be_gibbed())
