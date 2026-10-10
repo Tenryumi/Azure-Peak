@@ -2,12 +2,12 @@
 
 /datum/loadout_item/card_deck
 	name = "Card Deck"
-	path = /obj/item/deck/cards
+	path = /obj/item/deck/playing_cards
 	sort_category = "Misc"
 
 /datum/loadout_item/card_deck_triple
 	name = "Card Deck (3x Cards)"
-	path = /obj/item/deck/cards/triple
+	path = /obj/item/deck/playing_cards/triple
 	sort_category = "Misc"
 
 /datum/loadout_item/farkle_dice
