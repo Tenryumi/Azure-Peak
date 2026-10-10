@@ -1,4 +1,0 @@
-author: "KatTheFox"
-delete-after: True
-changes:
-  - bugfix: "The black mirror will no longer become \"stuck\" closed when you close it while bloody"

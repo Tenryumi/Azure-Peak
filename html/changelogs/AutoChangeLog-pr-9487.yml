@@ -1,4 +1,0 @@
-author: "KatTheFox"
-delete-after: True
-changes:
-  - bugfix: "The 'message familiar' spell now should work to track your dead familiar's vestige in all cases."

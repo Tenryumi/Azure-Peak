@@ -479,3 +479,16 @@
   - bugfix: Lacrima now extracts pure lux from Aasimirs
   - refactor: Refactored how Barter works, mostly added more soul to it. It should
       feel like you're dealing with Matthios better now.
+2026-10-10:
+  KatTheFox:
+  - bugfix: The black mirror will no longer become "stuck" closed when you close it
+      while bloody
+  - qol: Eoran missionaries and acolytes now spawn with a rabbit mask in their bag
+      instead of on their face
+  - bugfix: The 'message familiar' spell now should work to track your dead familiar's
+      vestige in all cases.
+  - rscadd: The breathless may now give mouth-to-mouth, though not if they lack lungs
+      or are skeletons
+  Traveler319:
+  - rscadd: Sanguine heels can now hold knives.
+  - code_imp: repathed Court Physician shoes to be a subtype of shoes/roguetown.
