@@ -426,6 +426,15 @@
 			playsound(src, 'sound/items/cardshuffle.ogg', 100, TRUE)
 			user.visible_message(span_notice("[user] shuffles the deck."), span_notice("I shuffle the deck."), span_notice("I hear the shuffling of cards."))
 
+/obj/item/deck/proc/user_can_get_cards(mob/user)
+	if(!ishuman(user) || user.stat)
+		return FALSE
+	var/mob/living/carbon/human/H = user
+	if(H.get_num_arms() <= 0)
+		SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user)
+		return FALSE
+	return TRUE
+
 /obj/item/deck/Destroy()
 	QDEL_LIST(cards)
 	return ..()
@@ -448,13 +457,16 @@
 		user.changeNext_move(CLICK_CD_FAST)
 		return
 
-/obj/item/deck/ShiftRightClick(mob/user)
-	if(!ishuman(user) || user.stat)
+/obj/item/deck/AltRightClick(mob/user)
+	if(!user_can_get_cards(user))
 		return
 	var/mob/living/carbon/human/H = user
-	if(H.get_num_arms() <= 0)
-		SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user)
+	var/thing_in_hand = H.get_active_held_item()
+
+/obj/item/deck/ShiftRightClick(mob/user)
+	if(!user_can_get_cards(user))
 		return TRUE
+	var/mob/living/carbon/human/H = user
 	var/thing_in_hand = H.get_active_held_item()
 	// If we're right clicking with an empty hand, make a new hand!
 	if(!thing_in_hand && cards.len > 1)
@@ -489,12 +501,9 @@
 
 /obj/item/deck/attack_right(mob/user)
 	. = ..()
-	if(!user || !ishuman(user))
+	if(!user_can_get_cards(user))
 		return
 	var/mob/living/carbon/human/H = user
-	if(H.get_num_arms() <= 0)
-		SHOW_ERROR_WHERES_YOUR_FUCKING_ARMS(user)
-		return
 	// If we're right clicking with an empty hand, make a new hand!
 	var/thing_in_hand = H.get_active_held_item()
 	if(!thing_in_hand && cards.len > 1)
