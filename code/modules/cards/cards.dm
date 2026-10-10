@@ -457,12 +457,6 @@
 		user.changeNext_move(CLICK_CD_FAST)
 		return
 
-/obj/item/deck/AltRightClick(mob/user)
-	if(!user_can_get_cards(user))
-		return
-	var/mob/living/carbon/human/H = user
-	var/thing_in_hand = H.get_active_held_item()
-
 /obj/item/deck/ShiftRightClick(mob/user)
 	if(!user_can_get_cards(user))
 		return TRUE
